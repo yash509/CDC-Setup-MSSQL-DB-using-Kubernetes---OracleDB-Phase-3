@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connect
+  namespace: cdc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: connect
+  template:
+    metadata:
+      labels:
+        app: connect
+    spec:
+      hostAliases:
+        - ip: "172.19.176.1"  
+          hostnames:
+            - "host.docker.internal"
+
+      containers:
+        - name: connect
+          image: yash50900/debezium-connect-oracle:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: kafka-0.kafka.cdc.svc.cluster.local:9092
+            - name: GROUP_ID
+              value: "1"
+            - name: CONFIG_STORAGE_TOPIC
+              value: connect_configs
+            - name: OFFSET_STORAGE_TOPIC
+              value: connect_offsets
+            - name: STATUS_STORAGE_TOPIC
+              value: connect_status
+            - name: ENABLE_DEBEZIUM_SCRIPTING
+              value: "true"
+            - name: PLUGIN_PATH
+              value: "/kafka/connect"
